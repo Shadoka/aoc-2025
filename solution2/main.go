@@ -16,26 +16,35 @@ type SafeDial struct {
 	ZeroCounter     int
 }
 
-func (sd *SafeDial) Increment(amount int) {
-	fmt.Println("test")
-	absPosition := max(sd.Position, -sd.Position)
-	sd.RotationCounter += (amount + absPosition) / 100
-	sd.Position = (sd.Position + amount) % 100
-	if sd.Position == 0 {
-		sd.ZeroCounter++
+func (sd *SafeDial) Right(amount int) {
+	rotations := (amount + sd.Position) / 100
+	// our zero counter will get incremented
+	if (amount+sd.Position)%100 == 0 {
+		rotations--
 	}
+	sd.RotationCounter += rotations
+	sd.CalculatePosition(amount)
 }
 
-func (sd *SafeDial) Decrement(amount int) {
-	negPosition := min(sd.Position, -sd.Position)
-	rotations := (negPosition - amount) / 100
-	sd.RotationCounter += rotations
-	newPosition := (sd.Position - amount) % 100
-	if rotations > 0 {
-		sd.Position = (100 - newPosition) * -1
-	} else {
-		sd.Position = newPosition
+func (sd *SafeDial) Left(amount int) {
+	rotations := 0
+	fullRotations := amount / 100
+	modulAmount := amount % 100
+
+	rotations += fullRotations
+
+	if sd.Position != 0 && modulAmount > sd.Position {
+		rotations++
 	}
+	sd.RotationCounter += rotations
+
+	invertedAmount := 100 - modulAmount
+	amount = amount - modulAmount + invertedAmount
+	sd.CalculatePosition(amount)
+}
+
+func (sd *SafeDial) CalculatePosition(amount int) {
+	sd.Position = (sd.Position + amount) % 100
 	if sd.Position == 0 {
 		sd.ZeroCounter++
 	}
@@ -43,7 +52,6 @@ func (sd *SafeDial) Decrement(amount int) {
 
 func main() {
 	inputFile := os.Args[1]
-	// inputFile := "example.txt"
 
 	dial := SafeDial{
 		Position:        50,
@@ -51,7 +59,9 @@ func main() {
 		ZeroCounter:     0,
 	}
 	countZeroesWithDial(inputFile, &dial)
-	fmt.Printf("total zeroes: %v\n", dial.RotationCounter)
+	fmt.Printf("ending zeroes: %v, rotating zeroes: %v\n", dial.ZeroCounter, dial.RotationCounter)
+	fmt.Printf("total zeroes: %v\n", dial.RotationCounter+dial.ZeroCounter)
+	fmt.Printf("position: %v\n", dial.Position)
 }
 
 func countZeroesWithDial(inputFile string, dial *SafeDial) {
@@ -71,84 +81,35 @@ func countZeroesWithDial(inputFile string, dial *SafeDial) {
 			log.Fatal(err)
 		}
 		if len(line) != 0 {
-			_, completeValue := parseLine(line)
+			completeValue := parseLine(line)
+			absValue := abs(completeValue)
 			if completeValue > 0 {
-				dial.Increment(completeValue)
+				dial.Right(absValue)
 			} else {
-				dial.Decrement(completeValue)
+				dial.Left(absValue)
 			}
 		}
 	}
-
-	fmt.Printf("ending zeroes: %v, rotating zeroes: %v\n", dial.ZeroCounter, dial.RotationCounter)
 }
 
-func countZeroes(inputFile string) int {
-	filehandle, err := os.Open(inputFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer filehandle.Close()
-
-	position := 50
-	rotatingZeroes := 0
-	amountZeroes := 0
-	scanner := bufio.NewReader(filehandle)
-	for {
-		line, err := scanner.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		if len(line) != 0 {
-			currentStep, completeValue := parseLine(line)
-			rotatingZeroes += countRotatingZeroes(completeValue, position)
-			position = (position + currentStep) % 100
-
-			if position == 0 {
-				amountZeroes++
-			}
-		}
-	}
-
-	fmt.Printf("ending zeroes: %v, rotating zeroes: %v\n", amountZeroes, rotatingZeroes)
-	return amountZeroes + rotatingZeroes
+func abs(value int) int {
+	return max(value, -value)
 }
 
-func countRotatingZeroes(completeValue int, position int) int {
-	result := 0
-
-	fullRotations := completeValue / 100
-	result += max(fullRotations, -fullRotations)
-
-	modulValue := completeValue % 100
-	newPosition := position + modulValue
-	if (position > 0 && newPosition < 0) || (position < 0 && newPosition > 0) {
-		result += 1
-	}
-
-	absNewPosition := max(newPosition/100, -(newPosition / 100))
-	result += absNewPosition
-
-	return result
-}
-
-func parseLine(line string) (int, int) {
+func parseLine(line string) int {
 	direction := line[:1]
 	value := line[1:]
 	value = strings.Replace(value, "\n", "", 1)
+	value = strings.Replace(value, "\r", "", 1)
 
-	original, err := strconv.Atoi(value)
+	intValue, err := strconv.Atoi(value)
 	if err != nil {
 		log.Fatal(err)
 	}
-	intValue := (original % 100)
 
 	if direction == "R" {
-		return intValue, original
+		return intValue
 	} else {
-		return -intValue, -original
+		return -intValue
 	}
 }

@@ -46,6 +46,7 @@ func parseLine(line string) int {
 	direction := line[:1]
 	value := line[1:]
 	value = strings.Replace(value, "\n", "", 1)
+	value = strings.Replace(value, "\r", "", 1)
 
 	intValue, err := strconv.Atoi(value)
 	if err != nil {

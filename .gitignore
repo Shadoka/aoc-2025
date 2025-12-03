@@ -32,6 +32,7 @@ go.work.sum
 .vscode/
 
 input.txt
+example.txt
 
 # executables
 puzzle*

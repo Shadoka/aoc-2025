@@ -11,7 +11,14 @@ Download the input data [(link here)](https://adventofcode.com/2025/day/1) and g
 ## Day 1 Part 2
 
 Input data is the same as in part 1. Build solution2 and give the input to the application:
-
 ```
 ./puzzle2 input.txt
+```
+
+## Day 2 Part 1
+
+Download the input data [(link here)](https://adventofcode.com/2025/day/2). Add an empty line at the bottom and pass it to
+the application:
+```
+./puzzle3 input.txt
 ```

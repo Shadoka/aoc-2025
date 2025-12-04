@@ -36,3 +36,10 @@ the application:
 ```
 ./puzzle4 input.txt
 ```
+
+## Day 3 Part 1
+
+Download the input data [(link here)](https://adventofcode.com/2025/day/3) and pass it as input to the application:
+```
+./puzzle5 input.txt
+```
